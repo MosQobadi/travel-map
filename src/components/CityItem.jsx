@@ -20,7 +20,7 @@ export function convertToEmoji(countryCode) {
 
 const CityItem = ({ city }) => {
   const { currentCity, deleteCity } = useCities();
-  const { cityName, date, id, position } = city;
+  const { cityName, date, id, position, emoji } = city;
 
   const selectedCity = id === currentCity.id;
 
@@ -38,7 +38,7 @@ const CityItem = ({ city }) => {
         }`}
         to={`${id}?lat=${position.lat}&lng=${position.lng}`}
       >
-        {/* <span className={styles.emoji}>{convertToEmoji(city.country)}</span> */}
+        <span className={styles.emoji}>{emoji}</span>
         <h3 className={styles.name}>{cityName}</h3>
         <time className={styles.date}>{formDate(date)}</time>
         <button className={styles.deleteBtn} onClick={handleClick}>

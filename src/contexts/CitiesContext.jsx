@@ -2,6 +2,8 @@ import { createContext, useEffect, useContext, useReducer } from "react";
 
 const CitiesContext = createContext();
 
+const API_URL = "https://67d151d1825945773eb3da17.mockapi.io/cities";
+
 const initialState = {
   cities: [],
   currentCity: {},
@@ -31,7 +33,7 @@ function reducer(state, action) {
     case "loading":
       return { ...state, isLoading: true };
 
-    case "city/laoded":
+    case "city/loaded":
       return { ...state, isLoading: false, currentCity: action.payload };
 
     case "rejected":
@@ -53,12 +55,18 @@ function CititesProvider({ children }) {
       dispatch({ type: "loading" });
 
       try {
-        const res = await fetch("http://localhost:8000/cities");
+        const res = await fetch(API_URL);
         const data = await res.json();
 
-        dispatch({ type: "cities/loaded", payload: data });
+        // Transform data to include a nested position object
+        const transformedData = data.map((city) => ({
+          ...city,
+          position: { lat: city.lat, lng: city.lng }, // Add position object
+        }));
+
+        dispatch({ type: "cities/loaded", payload: transformedData });
       } catch (error) {
-        console.log(error.message);
+        dispatch({ type: "rejected", payload: error.message });
       }
     }
 
@@ -68,10 +76,16 @@ function CititesProvider({ children }) {
   async function getCity(id) {
     dispatch({ type: "loading" });
     try {
-      const res = await fetch(`http://localhost:8000/cities/${id}`);
+      const res = await fetch(`${API_URL}/${id}`);
       const data = await res.json();
 
-      dispatch({ type: "city/laoded", payload: data });
+      // Ensure city has a position object
+      const transformedCity = {
+        ...data,
+        position: { lat: data.lat, lng: data.lng },
+      };
+
+      dispatch({ type: "city/loaded", payload: transformedCity });
     } catch (error) {
       dispatch({ type: "rejected", payload: error.message });
     }
@@ -80,11 +94,14 @@ function CititesProvider({ children }) {
   async function createCity(newCity) {
     dispatch({ type: "loading" });
     try {
-      const res = await fetch(`http://localhost:8000/cities`, {
-        method: "POST",
-        header: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCity),
-      });
+      const res = await fetch(
+        `https://67d151d1825945773eb3da17.mockapi.io/cities`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newCity),
+        }
+      );
       const data = await res.json();
 
       dispatch({ type: "cities/create", payload: data });
@@ -96,7 +113,7 @@ function CititesProvider({ children }) {
   async function deleteCity(id) {
     dispatch({ type: "loading" });
     try {
-      await fetch(`http://localhost:8000/cities/${id}`, {
+      await fetch(`https://67d151d1825945773eb3da17.mockapi.io/cities/${id}`, {
         method: "DELETE",
       });
 
